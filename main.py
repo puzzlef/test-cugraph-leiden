@@ -7,8 +7,12 @@ import cugraph
 
 
 # Initialize RMM pool
+mode = sys.argv[3]
 print("Initializing RMM pool...", flush=True)
-pool = rmm.mr.PoolMemoryResource(rmm.mr.CudaMemoryResource(), initial_pool_size=2**36)
+if mode == "managed":
+  pool = rmm.mr.PoolMemoryResource(rmm.mr.ManagedMemoryResource(), initial_pool_size=2**36)
+else:
+  pool = rmm.mr.PoolMemoryResource(rmm.mr.CudaMemoryResource(), initial_pool_size=2**36)
 rmm.mr.set_current_device_resource(pool)
 
 # Read graph from file

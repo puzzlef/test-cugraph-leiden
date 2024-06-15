@@ -48,6 +48,7 @@ runCugraph() {
   # $1: input file name
   # $2: is graph weighted (0/1)
   # $3: is graph symmetric (0/1)
+  # $4: memory manager (default/managed)
   opt2=""
   opt3=""
   if [[ "$2" == "1" ]]; then opt2="-w"; fi
@@ -59,7 +60,7 @@ runCugraph() {
   tail -n +$((lines+1)) "$1" >> "$1.csv"
   # Run cuGraph leiden, and save the obtained communities
   stdbuf --output=L printf "Running cuGraph Leiden on $1.csv ...\n"                 | tee -a "$out"
-  stdbuf --output=L python3 main.py "$1.csv" "$1.clstr"                        2>&1 | tee -a "$out"
+  stdbuf --output=L python3 main.py "$1.csv" "$1.clstr" "$3"                   2>&1 | tee -a "$out"
   # Count disconnected communities
   stdbuf --output=L printf "Counting disconnected communities ...\n"                | tee -a "$out"
   stdbuf --output=L ../count.out -i "$1" -m "$1.clstr" -k -r 0 "$opt2" "$opt3" 2>&1 | tee -a "$out"
@@ -70,20 +71,20 @@ runCugraph() {
 }
 
 runAll() {
-  # runCugraph "$HOME/Data/web-Stanford.mtx"    0 0
-  runCugraph "$HOME/Data/indochina-2004.mtx"  0 0
-  runCugraph "$HOME/Data/uk-2002.mtx"         0 0
-  runCugraph "$HOME/Data/arabic-2005.mtx"     0 0
-  runCugraph "$HOME/Data/uk-2005.mtx"         0 0
-  runCugraph "$HOME/Data/webbase-2001.mtx"    0 0
-  runCugraph "$HOME/Data/it-2004.mtx"         0 0
-  runCugraph "$HOME/Data/sk-2005.mtx"         0 0
-  runCugraph "$HOME/Data/com-LiveJournal.mtx" 0 1
-  runCugraph "$HOME/Data/com-Orkut.mtx"       0 1
-  runCugraph "$HOME/Data/asia_osm.mtx"        0 1
-  runCugraph "$HOME/Data/europe_osm.mtx"      0 1
-  runCugraph "$HOME/Data/kmer_A2a.mtx"        0 1
-  runCugraph "$HOME/Data/kmer_V1r.mtx"        0 1
+  # runCugraph "$HOME/Data/web-Stanford.mtx"    0 0 default
+  runCugraph "$HOME/Data/indochina-2004.mtx"  0 0 default
+  runCugraph "$HOME/Data/uk-2002.mtx"         0 0 default
+  runCugraph "$HOME/Data/arabic-2005.mtx"     0 0 managed
+  runCugraph "$HOME/Data/uk-2005.mtx"         0 0 managed
+  runCugraph "$HOME/Data/webbase-2001.mtx"    0 0 managed
+  runCugraph "$HOME/Data/it-2004.mtx"         0 0 managed
+  runCugraph "$HOME/Data/sk-2005.mtx"         0 0 managed
+  runCugraph "$HOME/Data/com-LiveJournal.mtx" 0 1 default
+  runCugraph "$HOME/Data/com-Orkut.mtx"       0 1 default
+  runCugraph "$HOME/Data/asia_osm.mtx"        0 1 default
+  runCugraph "$HOME/Data/europe_osm.mtx"      0 1 default
+  runCugraph "$HOME/Data/kmer_A2a.mtx"        0 1 default
+  runCugraph "$HOME/Data/kmer_V1r.mtx"        0 1 default
 }
 
 runAll
