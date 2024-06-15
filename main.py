@@ -32,6 +32,4 @@ for i in range(4):
 # Save communities to file
 comm = os.path.expanduser(sys.argv[2])
 print("Saving communities to file: {}".format(comm), flush=True)
-with open(comm, "w") as f:
-  for i in range(len(parts)):
-    f.write("{} {}\n".format(parts['vertex'].iloc[i], parts['partition'].iloc[i]))
+parts.to_csv(comm, sep=' ', header=False, index=False)
