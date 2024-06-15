@@ -3,11 +3,12 @@ const os = require('os');
 const path = require('path');
 const readline = require('readline');
 
-const RGRAPH = /^Reading graph from file:\s*.*\/(.*?)\.mtx\.elist/m;
-const RORDER = /^Nodes: (.+?), Edges: (.+)/m;
-const RMODUL = /^ParallelLeiden: Runtime: (.+?)ms, Modularity: (.+)/m;
-const RTTIME = /^Total time: (.+)/m;
+const RGRAPH = /^Running cuGraph Leiden on \s*.*\/(.*?)\.mtx\.csv/m;
+const RORDER = /^order: (.+?) size: (.+) \[directed\] \{\}/m;
+const RMODUL = /^Leiden modularity: (.+)/m;
+const RTTIME = /^Leiden took: (.+?) s/m;
 const RNCOMS = /^Number of communities: (.+)/m;
+const RDCOMS = /^Number of disconnected communities: (.+)/m;
 
 
 
@@ -52,25 +53,38 @@ function readLogLine(ln, data, state) {
     var [, graph] = RGRAPH.exec(ln);
     if (!data.has(graph)) data.set(graph, []);
     state.graph = graph;
+    state.order = 0;
+    state.size  = 0;
+    state.time  = 0;
+    state.modularity  = 0;
+    state.communities = 0;
+    state.disconnected_communities = 0;
+    state.rows = 0;
   }
   else if (RORDER.test(ln)) {
     var [, order, size] = RORDER.exec(ln);
-    state.order = order;
-    state.size  = size;
+    state.order = parseFloat(order);
+    state.size  = parseFloat(size);
   }
   else if (RMODUL.test(ln)) {
-    var [,, modularity] = RMODUL.exec(ln);
-    state.modularity = parseFloat(modularity);
+    var [, modularity] = RMODUL.exec(ln);
+    state.modularity += parseFloat(modularity);
   }
   else if (RTTIME.test(ln)) {
-    var [, total_time] = RTTIME.exec(ln);
-    state.total_time = 1000 * parseFloat(total_time);
+    var [, time] = RTTIME.exec(ln);
+    state.time += 1000 * parseFloat(time);
+    ++state.rows;
   }
   else if (RNCOMS.test(ln)) {
     var [, communities] = RNCOMS.exec(ln);
-    data.get(state.graph).push(Object.assign({}, state, {
-      communities: parseFloat(communities),
-    }));
+    state.communities = parseFloat(communities);
+  }
+  else if (RDCOMS.test(ln)) {
+    var [, disconnected_communities] = RDCOMS.exec(ln);
+    state.disconnected_communities = parseFloat(disconnected_communities);
+    state.modularity /= state.rows;
+    state.time       /= state.rows;
+    data.get(state.graph).push(Object.assign({}, state));
   }
   return state;
 }
